@@ -90,3 +90,8 @@ Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTIN
 ## 📜 License
 
 This project is licensed under the [GNU Affero General Public License v3.0](LICENSE) - see the LICENSE file for details.
+---
+
+<div align="center">
+Made with ❤️ by <a href="https://github.com/santiadjmc">Santiago Morales</a>
+</div>
