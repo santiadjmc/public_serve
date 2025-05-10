@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Server</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --accent-color: #bb86fc;
+            --secondary-color: #03dac6;
+            --error-color: #cf6679;
+            --card-bg: #1e1e1e;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        header {
+            position: relative;
+            height: 60vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            padding: 2rem;
+        }
+        
+        .hero-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .hero-title {
+            font-size: 4.5rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 1rem;
+            background: linear-gradient(90deg, var(--secondary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 1s ease-out forwards 0.3s;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.5rem;
+            text-align: center;
+            max-width: 700px;
+            margin-bottom: 2rem;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 1s ease-out forwards 0.6s;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .section-title {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--accent-color);
+            position: relative;
+            display: inline-block;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background-color: var(--secondary-color);
+            transition: width 0.8s ease;
+        }
+        
+        .section-title.visible::after {
+            width: 100%;
+        }
+        
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transform: translateY(50px);
+            opacity: 0;
+            transition: transform 0.8s ease, opacity 0.8s ease, box-shadow 0.3s ease;
+        }
+        
+        .card.visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .card:hover {
+            box-shadow: 0 8px 25px rgba(187, 134, 252, 0.2);
+        }
+        
+        .card-title {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: var(--secondary-color);
+        }
+        
+        .card-content {
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+        
+        .card-content p {
+            margin-bottom: 1rem;
+        }
+        
+        .card-content code {
+            background-color: rgba(187, 134, 252, 0.1);
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 3rem 0;
+        }
+        
+        .feature-item {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: scale(0.9);
+            opacity: 0;
+            transition: transform 0.5s ease, opacity 0.5s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .feature-item.visible {
+            transform: scale(1);
+            opacity: 1;
+        }
+        
+        .feature-item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(3, 218, 198, 0.2);
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--accent-color);
+        }
+        
+        .feature-title {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+            color: var(--secondary-color);
+        }
+        
+        .feature-description {
+            text-align: center;
+            line-height: 1.5;
+        }
+        
+        .button {
+            display: inline-block;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            font-weight: bold;
+            text-decoration: none;
+            color: var(--bg-color);
+            background-color: var(--secondary-color);
+            border-radius: 50px;
+            box-shadow: 0 5px 15px rgba(3, 218, 198, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            margin-top: 1.5rem;
+            opacity: 0;
+            animation: fadeIn 1s ease forwards 1s;
+        }
+        
+        .button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+        
+        .button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(3, 218, 198, 0.5);
+        }
+        
+        .button:hover::before {
+            left: 100%;
+        }
+        
+        .button:active {
+            transform: translateY(0);
+        }
+        
+        .floating-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            opacity: 0.4;
+            animation: float-particle var(--duration) infinite linear;
+        }
+        
+        footer {
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 2rem;
+            text-align: center;
+            margin-top: 3rem;
+        }
+        
+        footer p {
+            font-size: 1rem;
+            opacity: 0.7;
+        }
+        
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+        
+        @keyframes float-particle {
+            0% {
+                transform: translateY(0) rotate(0deg);
+            }
+            100% {
+                transform: translateY(var(--travel)) rotate(360deg);
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+        
+        .glow-effect {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(187, 134, 252, 0.4) 0%, rgba(187, 134, 252, 0) 70%);
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            mix-blend-mode: screen;
+        }
+        
+        /* Code snippet styling */
+        .code-block {
+            background-color: #1a1a2e;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            position: relative;
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden;
+        }
+        
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 8px 8px 0 0;
+            margin: -1.5rem -1.5rem 1rem -1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .code-title {
+            font-size: 0.9rem;
+            color: var(--secondary-color);
+        }
+        
+        .code-dots {
+            display: flex;
+            gap: 6px;
+        }
+        
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .dot.red { background-color: #ff5f57; }
+        .dot.yellow { background-color: #febc2e; }
+        .dot.green { background-color: #28c840; }
+        
+        .code-content {
+            color: var(--text-color);
+            line-height: 1.5;
+            font-size: 0.9rem;
+            position: relative;
+        }
+        
+        .code-content .highlight {
+            color: var(--secondary-color);
+        }
+        
+        .code-content .keyword {
+            color: var(--accent-color);
+        }
+        
+        .code-content .string {
+            color: #C3E88D;
+        }
+        
+        .code-content .number {
+            color: #F78C6C;
+        }
+        
+        .code-content .comment {
+            color: #546E7A;
+        }
+        
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 3rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Video player styling */
+        .video-container {
+            width: 100%;
+            margin: 2rem 0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+            background-color: var(--card-bg);
+            padding: 1rem;
+        }
+        
+        .video-container video {
+            width: 100%;
+            border-radius: 8px;
+            display: block;
+        }
+        
+        .demo-section {
+            margin-bottom: 3rem;
+        }
+        
+        /* Directory listing styled preview */
+        .directory-preview {
+            background-color: #1a1a2e;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border: 1px solid rgba(187, 134, 252, 0.2);
+        }
+        
+        .directory-preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 1rem;
+        }
+        
+        .directory-preview-title {
+            font-size: 1rem;
+            color: var(--secondary-color);
+        }
+        
+        .directory-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        
+        .directory-item:hover {
+            background-color: rgba(187, 134, 252, 0.1);
+        }
+        
+        .directory-icon {
+            margin-right: 0.75rem;
+            color: var(--accent-color);
+        }
+        
+        .directory-name {
+            flex-grow: 1;
+        }
+        
+        .directory-size {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Quick links section */
+        .quick-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+        
+        .quick-link {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background-color: rgba(187, 134, 252, 0.1);
+            border-radius: 50px;
+            text-decoration: none;
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            border: 1px solid rgba(187, 134, 252, 0.2);
+        }
+        
+        .quick-link:hover {
+            background-color: rgba(187, 134, 252, 0.2);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div id="glow" class="glow-effect"></div>
+    <div class="floating-particles" id="particles-container"></div>
+    
+    <header>
+        <div class="hero-background" id="hero-bg"></div>
+        <h1 class="hero-title">Data Server</h1>
+        <p class="hero-subtitle">A sleek, modern server for hosting and sharing your files instantly from the data directory.</p>
+        <div class="quick-links">
+            <a href="#features" class="quick-link">Features</a>
+            <a href="#video-demo" class="quick-link">Video Demo</a>
+            <a href="#browse-files" class="quick-link">Browse Files</a>
+            <a href="#how-to" class="quick-link">How To Use</a>
+        </div>
+    </header>
+    
+    <div class="container">
+        <section id="learn-more">
+            <h2 class="section-title">What is this?</h2>
+            <div class="card">
+                <h3 class="card-title">Data Directory Server</h3>
+                <div class="card-content">
+                    <p>This server is designed to make sharing files incredibly simple. Any file you place in the <code>data</code> directory becomes instantly accessible over the web.</p>
+                    <p>No complex configuration required — just upload and share. Your files become available at URLs that match their location in the data directory.</p>
+                    <div class="code-block">
+                        <div class="code-header">
+                            <div class="code-dots">
+                                <span class="dot red"></span>
+                                <span class="dot yellow"></span>
+                                <span class="dot green"></span>
+                            </div>
+                            <div class="code-title">File Access Example</div>
+                        </div>
+                        <div class="code-content">
+                            <span class="comment">// File in your server</span><br>
+                            /home/retr0/Downloads/public_serve/<span class="highlight">data</span>/images/photo.jpg<br><br>
+                            <span class="comment">// Accessible at URL</span><br>
+                            http://yourserver.com/<span class="highlight">images/photo.jpg</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="features">
+            <h2 class="section-title">Features</h2>
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">📁</div>
+                    <h3 class="feature-title">Instant Sharing</h3>
+                    <p class="feature-description">Add files to the data directory and they're immediately available to access.</p>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="feature-icon">🔄</div>
+                    <h3 class="feature-title">Simple URLs</h3>
+                    <p class="feature-description">Clean, intuitive URLs that match your file structure.</p>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="feature-icon">🔍</div>
+                    <h3 class="feature-title">Directory Browsing</h3>
+                    <p class="feature-description">Browse all available files through the web interface at /browse.</p>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="feature-icon">⚡</div>
+                    <h3 class="feature-title">Fast Performance</h3>
+                    <p class="feature-description">Smart caching for optimized speed and bandwidth.</p>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="feature-icon">📱</div>
+                    <h3 class="feature-title">Media Streaming</h3>
+                    <p class="feature-description">Watch videos and listen to audio directly in your browser.</p>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="feature-icon">🔒</div>
+                    <h3 class="feature-title">Error Handling</h3>
+                    <p class="feature-description">Custom 404 pages and graceful error handling.</p>
+                </div>
+            </div>
+        </section>
+        
+        <section id="video-demo" class="demo-section">
+            <h2 class="section-title">Video Streaming Demo</h2>
+            <div class="card">
+                <h3 class="card-title">In-Browser Video Player</h3>
+                <div class="card-content">
+                    <p>Videos are automatically streamed in your browser instead of downloading. Here's an example using a video from the data directory:</p>
+                    <div class="video-container">
+                        <video controls>
+                            <source src="/92cd183811b03f77dbd1d8aa1a53a6f3.mp4" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                    <p>You can share the direct link to this video file and it will play in the browser: <a href="/92cd183811b03f77dbd1d8aa1a53a6f3.mp4" target="_blank">/92cd183811b03f77dbd1d8aa1a53a6f3.mp4</a></p>
+                </div>
+            </div>
+        </section>
+        
+        <section id="browse-files">
+            <h2 class="section-title">Browse All Files</h2>
+            <div class="card">
+                <h3 class="card-title">Directory Listing</h3>
+                <div class="card-content">
+                    <p>You can easily browse all files available on this server with our directory listing feature. Just visit the browse endpoint:</p>
+                    <div class="directory-preview">
+                        <div class="directory-preview-header">
+                            <div class="directory-preview-title">Files in data directory</div>
+                        </div>
+                        <div class="directory-item">
+                            <div class="directory-icon">📄</div>
+                            <div class="directory-name">index.html</div>
+                            <div class="directory-size">HTML</div>
+                        </div>
+                        <div class="directory-item">
+                            <div class="directory-icon">📄</div>
+                            <div class="directory-name">404.html</div>
+                            <div class="directory-size">HTML</div>
+                        </div>
+                        <div class="directory-item">
+                            <div class="directory-icon">🎬</div>
+                            <div class="directory-name">92cd183811b03f77dbd1d8aa1a53a6f3.mp4</div>
+                            <div class="directory-size">MP4</div>
+                        </div>
+                    </div>
+                    <a href="/browse" class="button">Browse All Files</a>
+                </div>
+            </div>
+        </section>
+        
+        <section id="how-to">
+            <h2 class="section-title">How to Use</h2>
+            <div class="card">
+                <h3 class="card-title">Getting Started</h3>
+                <div class="card-content">
+                    <p>This server has been enhanced with the following features:</p>
+                    <ul>
+                        <li><strong>Directory listing</strong> - Browse files at <a href="/browse">/browse</a></li>
+                        <li><strong>Smart file caching</strong> - Different cache times for different file types</li>
+                        <li><strong>In-browser media player</strong> - Videos play directly in the browser</li>
+                        <li><strong>Custom error pages</strong> - Clean 404 page when files aren't found</li>
+                        <li><strong>Graceful server handling</strong> - Proper server shutdown and error handling</li>
+                    </ul>
+                    
+                    <div class="code-block">
+                        <div class="code-header">
+                            <div class="code-dots">
+                                <span class="dot red"></span>
+                                <span class="dot yellow"></span>
+                                <span class="dot green"></span>
+                            </div>
+                            <div class="code-title">terminal</div>
+                        </div>
+                        <div class="code-content">
+                            <span class="comment"># Start the server</span><br>
+                            <span class="keyword">npm</span> start<br><br>
+                            <span class="comment"># Or for development mode with auto-reload</span><br>
+                            <span class="keyword">npm</span> run dev
+                        </div>
+                    </div>
+                    
+                    <p>Once your files are in the data directory, they're instantly accessible at the corresponding URLs, and you can browse them all at <a href="/browse">/browse</a>.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <footer>
+        <p>Data Directory Server • Simple File Hosting</p>
+    </footer>
+
+    <script>
+        // Create particles
+        const particlesContainer = document.getElementById('particles-container');
+        const particlesCount = 30;
+        
+        for (let i = 0; i < particlesCount; i++) {
+            const size = Math.random() * 6 + 2;
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            
+            const x = Math.random() * window.innerWidth;
+            const y = Math.random() * window.innerHeight;
+            const travel = -Math.random() * 200 - 100;
+            
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.left = `${x}px`;
+            particle.style.top = `${y}px`;
+            particle.style.opacity = (Math.random() * 0.6 + 0.1).toString();
+            particle.style.setProperty('--travel', `${travel}px`);
+            particle.style.setProperty('--duration', `${Math.random() * 20 + 10}s`);
+            
+            particlesContainer.appendChild(particle);
+        }
+        
+        // Hero background gradient animation
+        const heroBg = document.getElementById('hero-bg');
+        let bgGradient = `radial-gradient(circle at 50% 50%, #1a1a2e 0%, #121212 70%)`;
+        heroBg.style.background = bgGradient;
+        
+        // Intersection Observer for scroll animations
+        const observerOptions = {
+            threshold: 0.2,
+            rootMargin: "0px 0px -100px 0px"
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+        
+        // Observe all section titles
+        document.querySelectorAll('.section-title').forEach(title => {
+            observer.observe(title);
+        });
+        
+        // Observe all cards
+        document.querySelectorAll('.card').forEach(card => {
+            observer.observe(card);
+        });
+        
+        // Observe feature items with delay
+        document.querySelectorAll('.feature-item').forEach((item, index) => {
+            setTimeout(() => {
+                observer.observe(item);
+            }, index * 100);
+        });
+        
+        // Mouse move glow effect
+        const glow = document.getElementById('glow');
+        let isScrolling = false;
+        
+        document.addEventListener('mousemove', (e) => {
+            if (!isScrolling) {
+                const x = e.clientX;
+                const y = e.clientY + window.scrollY;
+                
+                // Update glow position
+                glow.style.left = `${x - 100}px`;
+                glow.style.top = `${y - 100}px`;
+                glow.style.opacity = '1';
+                
+                // Update hero background if mouse is in the header
+                const header = document.querySelector('header');
+                const headerRect = header.getBoundingClientRect();
+                
+                if (e.clientY <= headerRect.bottom && e.clientY >= headerRect.top) {
+                    const xPercent = e.clientX / window.innerWidth;
+                    const yPercent = e.clientY / headerRect.height;
+                    
+                    bgGradient = `radial-gradient(circle at ${xPercent * 100}% ${yPercent * 100}%, #1a1a2e, #121212)`;
+                    heroBg.style.background = bgGradient;
+                }
+            }
+        });
+        
+        // Hide glow when mouse leaves window
+        document.addEventListener('mouseout', () => {
+            glow.style.opacity = '0';
+        });
+        
+        // Detect scroll to hide glow temporarily
+        window.addEventListener('scroll', () => {
+            isScrolling = true;
+            glow.style.opacity = '0';
+            
+            clearTimeout(window.scrollTimer);
+            window.scrollTimer = setTimeout(() => {
+                isScrolling = false;
+            }, 100);
+        });
+        
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 100,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        // Add ripple effect to buttons
+        document.querySelectorAll('.button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const ripple = document.createElement('div');
+                ripple.style.position = 'absolute';
+                ripple.style.width = '10px';
+                ripple.style.height = '10px';
+                ripple.style.borderRadius = '50%';
+                ripple.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
+                ripple.style.transform = 'scale(1)';
+                ripple.style.opacity = '1';
+                ripple.style.transition = 'all 0.6s ease-out';
+                
+                const rect = button.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                ripple.style.left = `${x}px`;
+                ripple.style.top = `${y}px`;
+                
+                button.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.style.transform = 'scale(50)';
+                    ripple.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 600);
+                }, 10);
+            });
+        });
+        
+        // Make sure videos play in the browser
+        document.addEventListener('DOMContentLoaded', function() {
+            const videos = document.querySelectorAll('video');
+            videos.forEach(video => {
+                video.setAttribute('controls', '');
+                video.setAttribute('preload', 'metadata');
+                
+                // Ensure video controls are visible
+                video.style.maxWidth = '100%';
+            });
+        });
+    </script>
+</body>
+</html>
