@@ -72,6 +72,9 @@ app.use(express.static(dataDir, {
 // 404 handler
 app.use((req, res) => {
   console.log(`404 Not Found: ${req.originalUrl}`);
+  if (req.originalUrl.includes('/browse')) {
+    return res.redirect(req.originalUrl.replace('/browse', ''));
+  }
   const notFoundPath = path.join(dataDir, '404.html');
   
   if (fs.existsSync(notFoundPath)) {
